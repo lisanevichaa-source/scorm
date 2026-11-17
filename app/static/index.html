@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конструктор SCORM-курсов</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">Конструктор SCORM-курсов</div>
+</header>
+
+<main id="app">
+
+  <!-- Экран 1: параметры курса -->
+  <section id="screen-setup" class="screen">
+    <h2>Новый курс</h2>
+
+    <div class="field">
+      <label>Загрузите исходный файл <span class="req">Обязательно</span></label>
+      <div class="upload-box">
+        <input type="file" id="fileInput" accept=".docx,.pptx,.pdf" multiple>
+        <div class="hint">До 2 документов. Поддерживаются DOCX, PPTX, PDF. Рекомендуемый объём — 10–100 страниц.</div>
+        <ul id="uploadList" class="upload-list"></ul>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Длительность курса</label>
+      <div class="segmented" id="durationGroup">
+        <button type="button" class="seg-btn active" data-value="short">до 10 минут</button>
+        <button type="button" class="seg-btn" data-value="medium">10–20 минут</button>
+        <button type="button" class="seg-btn" data-value="long">15–30 минут</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Язык курса</label>
+      <select id="languageSelect">
+        <option value="ru" selected>🇷🇺 Русский</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Опишите ваш курс <span class="req">Обязательно</span></label>
+      <textarea id="descriptionInput" rows="4" placeholder="Практический курс для сотрудников, который поможет..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Целевая аудитория <span class="req">Обязательно</span></label>
+      <textarea id="audienceInput" rows="3" placeholder="Расскажите, для кого предназначен этот курс..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Желаемая структура</label>
+      <textarea id="structureInput" rows="3" placeholder="Хотите задать структуру курса самостоятельно? Перечислите темы в желаемом порядке."></textarea>
+    </div>
+
+    <button id="btnCreateStructure" class="btn-primary">Создать структуру курса</button>
+  </section>
+
+  <!-- Экран 2: предложенная структура -->
+  <section id="screen-structure" class="screen hidden">
+    <h2>Структура курса</h2>
+    <p class="muted">
+      Вот предлагаемая структура вашего курса. Вы можете переименовывать главы и уроки или менять их местами.
+      Обратите внимание, что любые изменения также повлияют на содержащиеся в них материалы.<br>
+      После утверждения структуры и генерации контента вы сможете создавать дополнительные учебные материалы.
+    </p>
+    <button id="btnConfirmStructure" class="btn-primary">Подтвердить структуру</button>
+    <div id="structureList" class="structure-list"></div>
+  </section>
+
+  <!-- Экран 3: редактор уроков -->
+  <section id="screen-editor" class="screen hidden">
+    <div class="editor-layout">
+      <aside id="editorNav" class="editor-nav"></aside>
+      <div class="editor-main">
+        <div id="editorLessonHeader" class="editor-lesson-header"></div>
+        <textarea id="editorContent" class="editor-content" placeholder="Содержимое урока появится здесь после генерации..."></textarea>
+        <div id="editorQuizzes" class="editor-quizzes"></div>
+        <div class="editor-actions">
+          <button id="btnGenerateLesson" class="btn-secondary">Сгенерировать / перегенерировать урок</button>
+          <button id="btnSaveLesson" class="btn-secondary">Сохранить изменения</button>
+        </div>
+      </div>
+    </div>
+    <div class="build-bar">
+      <button id="btnGenerateCovers" class="btn-secondary">Сгенерировать обложки глав</button>
+      <button id="btnGenerateAll" class="btn-secondary">Сгенерировать все уроки</button>
+      <button id="btnBuildScorm" class="btn-primary">Собрать SCORM</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
