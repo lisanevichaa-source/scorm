@@ -23,6 +23,7 @@
       <file href="player.css"/>
       <file href="player.js"/>
       <file href="scorm_api.js"/>
-    </resource>
+{% for f in media_files %}      <file href="{{ f }}"/>
+{% endfor %}    </resource>
   </resources>
 </manifest>

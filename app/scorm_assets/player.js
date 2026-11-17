@@ -19,9 +19,23 @@
     return out;
   }
 
+  // Расчётное время прохождения: слов / 180 в минуту + около 40 секунд на каждое задание
+  function estimateMinutes(course) {
+    var total = 0;
+    course.chapters.forEach(function (ch) {
+      ch.lessons.forEach(function (ls) {
+        var doc = new DOMParser().parseFromString(ls.content_html || "", "text/html");
+        var t = (doc.body.textContent || "").trim();
+        total += (t ? t.split(/\s+/).length : 0) / 180 + (ls.quizzes || []).length * 0.7;
+      });
+    });
+    return total <= 15 ? Math.max(1, Math.round(total)) : Math.round(total / 5) * 5;
+  }
+
   function buildSidebar(course) {
     var root = document.getElementById("sidebar");
-    var html = '<h1>' + escapeHtml(course.title) + "</h1>";
+    var html = '<h1>' + escapeHtml(course.title) + "</h1>" +
+      '<div class="course-meta">Время прохождения: около ' + estimateMinutes(course) + " мин</div>";
     course.chapters.forEach(function (ch) {
       var coverIdx = entries.findIndex(function (e) { return e.type === "cover" && e.chapter.id === ch.id; });
       html += '<div class="chapter-title"' + (coverIdx >= 0 ? ' data-index="' + coverIdx + '" style="cursor:pointer"' : "") + '>' + escapeHtml(ch.title) + "</div>";
@@ -33,9 +47,34 @@
     root.innerHTML = html;
     root.querySelectorAll(".lesson-link, .chapter-title[data-index]").forEach(function (el) {
       el.addEventListener("click", function () {
+        setMenu(false);
         renderEntry(parseInt(el.getAttribute("data-index"), 10));
       });
     });
+  }
+
+  // Мобильное меню-шторка (на широких экранах сайдбар виден всегда)
+  function setMenu(open) {
+    document.body.classList.toggle("menu-open", open);
+    var btn = document.getElementById("menuBtn");
+    if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  // Картинка на весь экран: скриншоты на телефоне иначе не прочитать
+  function openLightbox(src, alt) {
+    var box = document.createElement("div");
+    box.className = "lightbox";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-label", "Увеличенная картинка");
+    var img = document.createElement("img");
+    img.src = src;
+    img.alt = alt || "";
+    box.appendChild(img);
+    var close = function () { box.remove(); document.removeEventListener("keydown", onKey); };
+    var onKey = function (e) { if (e.key === "Escape") close(); };
+    box.addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(box);
   }
 
   function escapeHtml(s) {
@@ -368,19 +407,55 @@
     renderNav(index, false, null);
   }
 
+  function renderPodcast(pod) {
+    var box = document.createElement("div");
+    box.className = "podcast";
+    var mins = Math.max(1, Math.round((pod.seconds || 0) / 60));
+    var title = document.createElement("div");
+    title.className = "podcast-title";
+    title.textContent = "Послушать урок" + (pod.seconds ? " · " + mins + " мин" : "");
+    var audio = document.createElement("audio");
+    audio.controls = true;
+    audio.preload = "none";
+    audio.src = pod.audio;
+    var speeds = document.createElement("div");
+    speeds.className = "podcast-speeds";
+    [1, 1.25, 1.5].forEach(function (v) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = v + "×";
+      if (v === 1) b.className = "active";
+      b.addEventListener("click", function () {
+        audio.playbackRate = v;
+        speeds.querySelectorAll("button").forEach(function (x) { x.className = x === b ? "active" : ""; });
+      });
+      speeds.appendChild(b);
+    });
+    box.appendChild(title);
+    box.appendChild(audio);
+    box.appendChild(speeds);
+    return box;
+  }
+
   function renderLessonEntry(index, entry) {
     var content = document.getElementById("content");
     content.innerHTML = "";
     content.classList.remove("cover-mode");
 
     var h2 = document.createElement("h2");
+    h2.className = "lesson-title";
     h2.textContent = entry.lesson.title;
     content.appendChild(h2);
 
+    if (entry.lesson.podcast && entry.lesson.podcast.audio) content.appendChild(renderPodcast(entry.lesson.podcast));
+
     var body = document.createElement("div");
-    body.className = "lesson-fade-in";
+    body.className = "lesson-fade-in lesson-content";
     body.innerHTML = entry.lesson.content_html || "";
     content.appendChild(body);
+    body.querySelectorAll("figure.lesson-image img").forEach(function (img) {
+      img.addEventListener("click", function () { openLightbox(img.src, img.alt); });
+    });
 
     var quizzes = entry.lesson.quizzes || [];
     var hasQuiz = quizzes.length > 0;
@@ -409,9 +484,18 @@
       renderLessonEntry(index, entry);
     }
     updateSidebarState();
+    var topTitle = document.getElementById("topTitle");
+    if (topTitle) topTitle.textContent = entry.type === "cover" ? entry.chapter.title : entry.lesson.title;
+    var contentEl = document.getElementById("content");
+    if (contentEl) contentEl.scrollTop = 0;
   }
 
   window.addEventListener("DOMContentLoaded", function () {
+    var menuBtn = document.getElementById("menuBtn");
+    if (menuBtn) menuBtn.addEventListener("click", function () { setMenu(!document.body.classList.contains("menu-open")); });
+    var scrim = document.getElementById("scrim");
+    if (scrim) scrim.addEventListener("click", function () { setMenu(false); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") setMenu(false); });
     window.ScormAPI && window.ScormAPI.init();
     var course = window.COURSE_DATA;
     entries = flatten(course);

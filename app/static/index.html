@@ -3,102 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Конструктор SCORM-курсов</title>
+<title>Конструктор курсов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="lesson_content.css">
+<link rel="stylesheet" href="editor.css">
 </head>
-<body>
+<body class="mode-start">
 
 <header class="topbar">
-  <div class="topbar-title">Конструктор SCORM-курсов</div>
+  <div class="topbar-left">
+    <svg class="logo" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="9" fill="#F25C19"/><rect x="7" y="8" width="16" height="4" rx="2" fill="#1D1E22"/><rect x="7" y="14" width="11" height="4" rx="2" fill="#1D1E22"/><rect x="7" y="20" width="14" height="3" rx="1.5" fill="#1D1E22"/></svg>
+    <span class="brand">Конструктор курсов</span>
+    <span class="topbar-sep" aria-hidden="true"></span>
+    <div class="course-head">
+      <input id="courseTitle" class="course-title" value="Новый курс" aria-label="Название курса" disabled>
+      <div id="topStatus" class="top-status"></div>
+    </div>
+    <span id="accessBadge" class="access-badge hidden"></span>
+  </div>
+  <div class="topbar-right">
+    <button id="btnMyCourses" class="btn btn-ghost" type="button" aria-expanded="false" aria-controls="coursesPanel">Мои курсы</button>
+    <button id="btnShare" class="btn btn-ghost hidden" type="button">Поделиться</button>
+    <button id="btnSettings" class="btn btn-ghost hidden" type="button">Настройки курса</button>
+    <button id="btnBuildScorm" class="btn btn-primary" type="button" disabled>Собрать SCORM</button>
+    <div id="userBox" class="user-box hidden">
+      <span id="userName" class="user-name"></span>
+      <a id="btnLogout" class="user-logout" href="/auth/logout">Выйти</a>
+    </div>
+  </div>
 </header>
 
-<main id="app">
+<div class="ws">
 
-  <!-- Экран 1: параметры курса -->
-  <section id="screen-setup" class="screen">
-    <h2>Новый курс</h2>
+  <!-- ЛЕВАЯ КОЛОНКА -->
+  <aside class="col col-left">
 
-    <div class="field">
-      <label>Загрузите исходный файл <span class="req">Обязательно</span></label>
-      <div class="upload-box">
-        <input type="file" id="fileInput" accept=".docx,.pptx,.pdf" multiple>
-        <div class="hint">До 2 документов. Поддерживаются DOCX, PPTX, PDF. Рекомендуемый объём — 10–100 страниц.</div>
-        <ul id="uploadList" class="upload-list"></ul>
+    <!-- старт: настройки -->
+    <section id="panelSettings" class="panel-settings">
+      <h1 class="h-display">О чём курс</h1>
+
+      <div id="dropzone" class="dropzone">
+        <input type="file" id="fileInput" accept=".docx,.pptx,.pdf" multiple aria-label="Выбрать файлы">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 26V8M13 15l7-7 7 7"/><path d="M7 25v6a3 3 0 0 0 3 3h20a3 3 0 0 0 3-3v-6"/></svg>
+        <div class="dz-title">Перетащите файл сюда</div>
+        <div class="dz-hint">DOCX, PPTX или PDF, до двух файлов</div>
+        <button type="button" id="btnPickFile" class="btn btn-outline">Выбрать файл</button>
       </div>
-    </div>
+      <ul id="uploadList" class="upload-list"></ul>
+      <p class="or-line">Или опишите курс словами ниже</p>
 
-    <div class="field">
-      <label>Длительность курса</label>
-      <div class="segmented" id="durationGroup">
-        <button type="button" class="seg-btn active" data-value="short">до 10 минут</button>
-        <button type="button" class="seg-btn" data-value="medium">10–20 минут</button>
-        <button type="button" class="seg-btn" data-value="long">15–30 минут</button>
+      <label for="descriptionInput" class="lbl">Тема курса</label>
+      <textarea id="descriptionInput" rows="3" placeholder="Например: как заводить изделия в 1С:PLM"></textarea>
+
+      <label for="audienceInput" class="lbl">Для кого</label>
+      <input id="audienceInput" type="text" placeholder="Например: новые сотрудники">
+
+      <div class="lbl" id="scopeLbl">Охват курса</div>
+      <div class="segmented" id="scopeGroup" role="radiogroup" aria-labelledby="scopeLbl">
+        <button type="button" role="radio" aria-checked="false" class="seg-btn" data-value="brief">Основное</button>
+        <button type="button" role="radio" aria-checked="true" class="seg-btn active" data-value="standard">Стандарт</button>
+        <button type="button" role="radio" aria-checked="false" class="seg-btn" data-value="full">Полностью</button>
       </div>
-    </div>
+      <p class="note" id="scopeNote">Курс средней длины: 3–5 глав.</p>
 
-    <div class="field">
-      <label>Язык курса</label>
+      <div class="lbl" id="detLbl">Подробность уроков</div>
+      <div class="segmented" id="detailGroup" role="radiogroup" aria-labelledby="detLbl">
+        <button type="button" role="radio" aria-checked="false" class="seg-btn" data-value="brief">Кратко</button>
+        <button type="button" role="radio" aria-checked="true" class="seg-btn active" data-value="standard">Стандарт</button>
+        <button type="button" role="radio" aria-checked="false" class="seg-btn" data-value="full">Подробно</button>
+      </div>
+      <p class="note" id="detailNote">Около 300–500 слов на урок и одно задание.</p>
+
+      <label for="languageSelect" class="lbl">Язык</label>
       <select id="languageSelect">
-        <option value="ru" selected>🇷🇺 Русский</option>
-        <option value="en">🇬🇧 English</option>
+        <option value="ru" selected>Русский</option>
+        <option value="en">English</option>
       </select>
-    </div>
 
-    <div class="field">
-      <label>Опишите ваш курс <span class="req">Обязательно</span></label>
-      <textarea id="descriptionInput" rows="4" placeholder="Практический курс для сотрудников, который поможет..."></textarea>
-    </div>
+      <label for="structureInput" class="lbl">Свой порядок тем <span class="opt">необязательно</span></label>
+      <textarea id="structureInput" rows="2" placeholder="Перечислите темы в нужном порядке"></textarea>
 
-    <div class="field">
-      <label>Целевая аудитория <span class="req">Обязательно</span></label>
-      <textarea id="audienceInput" rows="3" placeholder="Расскажите, для кого предназначен этот курс..."></textarea>
-    </div>
+      <button id="btnCreateStructure" class="btn btn-primary btn-wide" type="button">Собрать структуру</button>
+      <p id="settingsNote" class="note">Тему и аудиторию можно не заполнять: мы возьмём их из файла.</p>
+    </section>
 
-    <div class="field">
-      <label>Желаемая структура</label>
-      <textarea id="structureInput" rows="3" placeholder="Хотите задать структуру курса самостоятельно? Перечислите темы в желаемом порядке."></textarea>
-    </div>
+    <!-- работа: структура курса -->
+    <section id="panelNav" class="panel-nav hidden">
+      <div class="nav-head">Структура</div>
+      <div id="editorNav" class="editor-nav"></div>
+      <div class="nav-tools">
+        <div id="genProgress" class="gen-progress hidden" role="status" aria-live="polite">
+          <div class="gp-bar"><span id="gpFill"></span></div>
+          <div id="gpText" class="gp-text"></div>
+          <button id="btnCancelGen" class="gp-cancel" type="button">Остановить</button>
+        </div>
+        <button id="btnGenerateAll" class="btn btn-outline btn-wide" type="button">Сгенерировать все уроки</button>
+        <button id="btnGenerateCovers" class="btn btn-ghost btn-wide" type="button">Обложки глав</button>
+        <div id="podProgress" class="gen-progress hidden" role="status" aria-live="polite">
+          <div class="gp-bar"><span id="ppFill"></span></div>
+          <div id="ppText" class="gp-text"></div>
+          <button id="btnCancelPod" class="gp-cancel" type="button">Остановить</button>
+        </div>
+        <button id="btnGeneratePodcasts" class="btn btn-ghost btn-wide" type="button">Подкасты для всех уроков</button>
+      </div>
+    </section>
+  </aside>
 
-    <button id="btnCreateStructure" class="btn-primary">Создать структуру курса</button>
-  </section>
+  <!-- ЦЕНТР -->
+  <main class="col col-center">
 
-  <!-- Экран 2: предложенная структура -->
-  <section id="screen-structure" class="screen hidden">
-    <h2>Структура курса</h2>
-    <p class="muted">
-      Вот предлагаемая структура вашего курса. Вы можете переименовывать главы и уроки или менять их местами.
-      Обратите внимание, что любые изменения также повлияют на содержащиеся в них материалы.<br>
-      После утверждения структуры и генерации контента вы сможете создавать дополнительные учебные материалы.
-    </p>
-    <button id="btnConfirmStructure" class="btn-primary">Подтвердить структуру</button>
-    <div id="structureList" class="structure-list"></div>
-  </section>
+    <!-- старт: структура -->
+    <section id="panelStructure" class="panel-structure">
+      <div class="center-head">
+        <h2>Структура курса</h2>
+        <span id="genState" class="gen-state hidden"><span class="dot pulse"></span><span id="genStateText">Пишем структуру…</span></span>
+      </div>
+      <p id="structureHint" class="muted">Здесь появятся главы и уроки.</p>
 
-  <!-- Экран 3: редактор уроков -->
-  <section id="screen-editor" class="screen hidden">
-    <div class="editor-layout">
-      <aside id="editorNav" class="editor-nav"></aside>
-      <div class="editor-main">
+      <div id="structureEmpty" class="empty-box">
+        <div class="empty-title">Начните с файла или нескольких слов</div>
+        <div class="empty-text">Выберите длительность слева и нажмите «Собрать структуру». Через минуту здесь будет план курса, который можно править.</div>
+      </div>
+      <div id="structureSkeleton" class="hidden" aria-hidden="true">
+        <div class="sk-card"><span class="sk-sq"></span><span class="sk-line w60"></span></div>
+        <div class="sk-card"><span class="sk-sq"></span><span class="sk-line w45"></span></div>
+        <div class="sk-card"><span class="sk-sq"></span><span class="sk-line w55"></span></div>
+      </div>
+      <div id="structureList" class="structure-list"></div>
+
+      <div id="structureActions" class="structure-actions hidden">
+        <button id="btnConfirmStructure" class="btn btn-primary" type="button">Перейти к урокам</button>
+        <span class="muted">Структуру можно будет открыть снова через «Настройки курса».</span>
+      </div>
+    </section>
+
+    <!-- работа: редактор -->
+    <section id="panelEditor" class="panel-editor hidden">
+      <div class="editor-top">
         <div id="editorLessonHeader" class="editor-lesson-header"></div>
-        <textarea id="editorContent" class="editor-content" placeholder="Содержимое урока появится здесь после генерации..."></textarea>
-        <div id="editorQuizzes" class="editor-quizzes"></div>
-        <div class="editor-actions">
-          <button id="btnGenerateLesson" class="btn-secondary">Сгенерировать / перегенерировать урок</button>
-          <button id="btnSaveLesson" class="btn-secondary">Сохранить изменения</button>
+        <div class="editor-top-actions">
+          <span id="saveStatus" class="save-status"></span>
+          <button id="btnGenerateLesson" class="btn btn-outline" type="button">Сгенерировать урок</button>
         </div>
       </div>
+      <div class="le-wrap">
+        <div id="editorToolbar"></div>
+        <div id="editorMount" class="le-mount"></div>
+      </div>
+      <section id="podcastBox" class="podcast-box" aria-label="Подкаст к уроку"></section>
+      <h3 class="quiz-head">Проверочное задание</h3>
+      <div id="editorQuizzes" class="editor-quizzes"></div>
+    </section>
+  </main>
+
+  <!-- ПРАВАЯ КОЛОНКА: превью -->
+  <aside class="col col-right">
+    <div class="preview-title">Как увидит ученик</div>
+    <div class="phone">
+      <div id="previewEmpty" class="preview-empty">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="#C9C8C0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="8" width="38" height="40" rx="7"/><path d="M17 20h22M17 28h22M17 36h13"/></svg>
+        <div class="pe-title">Здесь будет урок</div>
+        <div class="pe-text">Выберите урок в структуре, и мы покажем его так, как он выглядит в курсе.</div>
+      </div>
+      <iframe id="previewFrame" class="preview-frame hidden" title="Предпросмотр урока"></iframe>
     </div>
-    <div class="build-bar">
-      <button id="btnGenerateCovers" class="btn-secondary">Сгенерировать обложки глав</button>
-      <button id="btnGenerateAll" class="btn-secondary">Сгенерировать все уроки</button>
-      <button id="btnBuildScorm" class="btn-primary">Собрать SCORM</button>
+  </aside>
+</div>
+
+<div id="coursesPanel" class="courses-panel hidden" role="dialog" aria-label="Мои курсы">
+  <div class="cp-head"><b>Мои курсы</b><button id="btnNewCourse" class="btn btn-outline" type="button">Новый курс</button></div>
+  <ul id="coursesList" class="courses-list"></ul>
+  <div id="cpAdmin" class="cp-admin hidden"><button id="btnCleanup" class="btn btn-ghost" type="button">Очистка файлов</button></div>
+</div>
+
+<div id="videoDialog" class="modal-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="vdTitle">
+  <div class="modal">
+    <div class="modal-head"><b id="vdTitle">Видео в урок</b><button id="vdClose" class="modal-x" type="button" aria-label="Закрыть">&times;</button></div>
+    <div class="segmented" role="tablist">
+      <button class="seg-btn active" type="button" data-vtab="file" role="tab">Своё видео</button>
+      <button class="seg-btn" type="button" data-vtab="link" role="tab">Код для вставки</button>
     </div>
-  </section>
+    <div id="vdFile" class="vd-pane">
+      <label class="vd-drop" id="vdDrop">
+        <input id="vdInput" type="file" accept="video/mp4,video/webm,.mp4,.webm" hidden>
+        <span class="vd-drop-title">Выберите видеофайл</span>
+        <span class="vd-drop-hint" id="vdLimit">MP4 (H.264) или WebM</span>
+      </label>
+      <div id="vdProgress" class="vd-progress hidden"><div class="vd-bar"><i id="vdBar"></i></div><span id="vdPct"></span></div>
+      <p class="vd-note">Видео станет частью SCORM-пакета и будет играть без интернета. Чем больше файл, тем дольше загружается пакет в LMS.</p>
+    </div>
+    <div id="vdLink" class="vd-pane hidden">
+      <textarea id="vdUrl" class="vd-input" rows="5" placeholder="Вставьте код для встраивания (&lt;iframe …&gt;) или ссылку на видео в YouTube, RuTube, Vimeo, VK Видео" autocomplete="off" spellcheck="false"></textarea>
+      <p class="vd-note">Подойдёт код из корпоративного портала с видеоплеером. Ученик увидит видео, только если у него (и у LMS) есть доступ к этому адресу.</p>
+      <div class="vd-actions"><button id="vdInsert" class="btn btn-primary" type="button">Вставить</button></div>
+    </div>
+    <div id="vdError" class="vd-error hidden" role="alert"></div>
+  </div>
+</div>
 
-</main>
+<div id="toast" class="toast hidden" role="status"></div>
 
-<div id="toast" class="toast hidden"></div>
+<div id="shareDialog" class="modal-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="modal">
+    <div class="modal-head"><b id="shareTitle">Доступ к курсу</b><button id="shareClose" class="modal-x" type="button" aria-label="Закрыть">&times;</button></div>
+    <p class="share-hint">Коллега увидит курс в списке «Мои курсы». «Просмотр»: читать курс и скачивать готовый SCORM. «Редактирование»: править уроки и собирать курс. Удалять курс и менять доступ может только владелец.</p>
+    <p id="shareOwner" class="share-owner"></p>
+    <div class="share-add">
+      <input id="shareEmail" type="email" placeholder="email коллеги" autocomplete="off" aria-label="Email коллеги">
+      <select id="shareRole" aria-label="Права">
+        <option value="view">Просмотр</option>
+        <option value="edit">Редактирование</option>
+      </select>
+      <button id="shareAdd" class="btn btn-outline" type="button">Добавить</button>
+    </div>
+    <ul id="shareList" class="share-list"></ul>
+    <p id="shareError" class="share-error hidden"></p>
+    <div class="share-actions">
+      <button id="shareCancel" class="btn btn-ghost" type="button">Отмена</button>
+      <button id="shareSave" class="btn btn-primary" type="button">Сохранить</button>
+    </div>
+  </div>
+</div>
 
+<script src="editor.bundle.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>

@@ -1,0 +1,14 @@
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+
+build:
+  dockerfile: Dockerfile
+
+run:
+  # Папка, куда приложение пишет курсы, загрузки и сборки (config.DATA_DIR = /srv/data).
+  # Благодаря монтированию данные переживают перезапуск и обновление.
+  persistenceMount: /srv/data
+  # Порт, который слушает uvicorn (см. Dockerfile). По умолчанию Amvera ждёт 80.
+  containerPort: 8000

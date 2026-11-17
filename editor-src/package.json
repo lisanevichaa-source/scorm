@@ -1,0 +1,21 @@
+{
+  "name": "lesson-editor",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "esbuild editor.js --bundle --minify --format=iife --target=es2019 --outfile=../app/static/editor.bundle.js"
+  },
+  "dependencies": {
+    "@tiptap/core": "^2.10.4",
+    "@tiptap/pm": "^2.10.4",
+    "@tiptap/starter-kit": "^2.10.4",
+    "@tiptap/extension-underline": "^2.10.4",
+    "@tiptap/extension-link": "^2.10.4",
+    "@tiptap/extension-text-align": "^2.10.4",
+    "@tiptap/extension-placeholder": "^2.10.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "jsdom": "^25.0.1"
+  }
+}
